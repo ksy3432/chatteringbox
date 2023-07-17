@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Add from "../img/addAvatar.png"
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { authService, storageService } from "../fbase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { authService, dbService, storageService } from "../fbase";
 import { ref,uploadBytesResumable,getDownloadURL, } from "@firebase/storage";
+import { doc,setDoc } from "@firebase/firestore";
 
 
 const Register = () => {
@@ -14,45 +15,56 @@ const Register = () => {
       const displayName = e.target[0].value;
       const email = e.target[1].value;
       const password = e.target[2].value;
-      const file = e.target[3].files[9];
+      const file = e.target[3].files[0];
 
-      try{
-        const res = await createUserWithEmailAndPassword(authService,email,password);
-
-        // Upload file and metadata to the object 'images/mountains.jpg'
-        const storageRef = ref(storageService, displayName);
+      try {  
+        const res = await createUserWithEmailAndPassword(authService, email, password);
+  
+        const storageRef = ref(storageService, `users/${displayName}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
-
+  
         uploadTask.on(
-        (error) => {
-          setErr(true);
-        }, 
-        () => {
-          // Handle successful uploads on complete
-          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            console.log('File available at', downloadURL);
-          });
-        }
-      )
-      }catch(err){
+          'state_changed',
+          (snapshot) => {
+          },
+          (error) => {
+            setErr(true);
+          },
+          async () => {
+            try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+  
+              await updateProfile(res.user, {
+                displayName,
+                photoURL: downloadURL,
+              });
+  
+              await setDoc(doc(dbService, 'users', res.user.uid), {
+                uid: res.user.uid,
+                displayName,
+                email,
+                photoURL: downloadURL,
+              });
+            } catch (error) {
+              setErr(true);
+            }
+          }
+        );
+      } catch (err) {
         setErr(true);
       }
-
-    }
-
-
+    };
     return(
     <div className="formContainer">
       <div className="formWrapper">
         <span className="logo">Chattering Box</span>
         <span className="title">Register</span>
         <form onSubmit={handleSubmit}>
-            <input type="text" placeholder="display name" name="displayName" />
-            <input type="email" placeholder="email" name="email" />
-            <input type="password" placeholder="password" name="password" />
-            <input style={{display:"none"}} type="file" id="file"/>
-            <label htmlFor="" id="file">
+            <input required type="text" placeholder="display name" name="displayName" />
+            <input required type="email" placeholder="email" name="email" />
+            <input required type="password" placeholder="password" name="password" />
+            <input required style={{display:"none"}} type="file" id="file"/>
+            <label htmlFor="file">
               <img src={Add} alt="no img" />
               <span>Add an avatar</span>
             </label>
