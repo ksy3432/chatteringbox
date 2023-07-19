@@ -4,10 +4,12 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { authService, dbService, storageService } from "../fbase";
 import { ref,uploadBytesResumable,getDownloadURL, } from "@firebase/storage";
 import { doc,setDoc } from "@firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 
 const Register = () => {
     const [err,setErr] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) =>{
       e.preventDefault();
@@ -25,7 +27,7 @@ const Register = () => {
   
         uploadTask.on(
           'state_changed',
-          (snapshot) => {
+          (snapshot) => {           //여기부터 3줄 제외하면 오류 발생 -> 계정 추가와 이미지 올리기는 작동하지만 setdoc이 작동하지 않음
           },
           (error) => {
             setErr(true);
@@ -45,7 +47,11 @@ const Register = () => {
                 email,
                 photoURL: downloadURL,
               });
-            } catch (error) {
+
+              await setDoc(doc(dbService,"userChats",res.user.uid),{});
+              navigate("/");
+
+            }catch (error) {
               setErr(true);
             }
           }
