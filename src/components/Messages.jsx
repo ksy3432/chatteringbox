@@ -10,7 +10,7 @@ const Messages = () => {
 
   useEffect(()=>{
     const unsub = onSnapshot(doc(dbService,"chats",data.chatId), (doc) => {
-      doc.exists() && setMessages(doc.data());
+      doc.exists() && setMessages(doc.data().messages);
     });
 
     return ()=>{
@@ -25,7 +25,7 @@ const Messages = () => {
         <Message message={m} key={m.id} />
       ))}
     </div>
-  )
-}
+  );
+};
 
 export default Messages

@@ -29,25 +29,19 @@ const Input = () => {
           setErr(true);
         },
         async () => {
-          try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-            await updateDoc(doc(dbService,"chats",data.chatId),{
-              messages: arrayUnion({
-                id: uuid(),
-                text,
-                senderId:currentUser.uid,
-                date:Timestamp.now(),
-                img:downloadURL,
-              }),
+            getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+              await updateDoc(doc(dbService,"chats",data.chatId),{
+                messages: arrayUnion({
+                  id: uuid(),
+                  text,
+                  senderId:currentUser.uid,
+                  date:Timestamp.now(),
+                  img:downloadURL,
+                }),
+              });
             });
-
-          }catch (err) {
-            setErr(true);
           }
-        }
       );
-
     }else{
       await updateDoc(doc(dbService,"chats",data.chatId),{
         messages: arrayUnion({
