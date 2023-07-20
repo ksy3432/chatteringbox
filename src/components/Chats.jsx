@@ -1,29 +1,45 @@
-import React from 'react'
+import { doc, onSnapshot } from '@firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react'
+import { dbService } from '../fbase';
+import { AuthContext } from '../context/AuthContext';
+import { ChatContext } from '../context/ChatContext';
 
 const Chats = () => {
+    const [chats,setChats] = useState([]);
+
+    const {currentUser} = useContext(AuthContext);
+    const {dispatch} = useContext(ChatContext);
+
+    useEffect(()=>{
+        const getChats = () => {const unsub = onSnapshot(doc(dbService,"userChats",currentUser.uid),(doc)=>{
+            setChats(doc.data());
+        });
+
+        return ()=> {
+            unsub();
+        };
+    };
+
+    currentUser.uid && getChats();
+    },[currentUser.uid]);
+
+    const handleSelect = (u) => {
+        dispatch({type:"CHANGE_USER", payload:u})
+    }
+
+    //console.log(Object.entries(chats));
+
   return (
     <div className='chats'>
-         <div className="userChat">
-            <img src="https://cdn.pixabay.com/photo/2023/07/07/07/46/cat-8111947_640.jpg" alt="" />
+        {Object.entries(chats)?.map((chat) => (
+        <div className="userChat" key={chat[0]} onClick={()=>handleSelect(chat[1].userInfo)}>
+            <img src={chat[1].userInfo.photoURL} alt="" />
             <div className="userChatInfo">
-                <span>sea</span>
-                <p>Hello</p>
+                <span>{chat[1].userInfo.displayName}</span>
+                <p>{chat[1].userInfo.lastMessage?.text}</p>
             </div>
         </div>
-        <div className="userChat">
-            <img src="https://cdn.pixabay.com/photo/2023/07/07/07/46/cat-8111947_640.jpg" alt="" />
-            <div className="userChatInfo">
-                <span>sea</span>
-                <p>Hello</p>
-            </div>
-        </div>
-        <div className="userChat">
-            <img src="https://cdn.pixabay.com/photo/2023/07/07/07/46/cat-8111947_640.jpg" alt="" />
-            <div className="userChatInfo">
-                <span>sea</span>
-                <p>Hello</p>
-            </div>
-        </div>
+        ))}
     </div>
   )
 }

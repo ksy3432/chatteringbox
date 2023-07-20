@@ -4,7 +4,7 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { authService, dbService, storageService } from "../fbase";
 import { ref,uploadBytesResumable,getDownloadURL, } from "@firebase/storage";
 import { doc,setDoc } from "@firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 const Register = () => {
@@ -60,6 +60,7 @@ const Register = () => {
         setErr(true);
       }
     };
+
     return(
     <div className="formContainer">
       <div className="formWrapper">
@@ -77,7 +78,7 @@ const Register = () => {
             <button >sign up</button>
             {err && <span>Something went Wrong</span>}
         </form>
-        <p>You do have an account? Login</p>
+        <p>You do have an account? <Link to="/login">Login</Link></p>
       </div>
     </div>
     );
