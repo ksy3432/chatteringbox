@@ -52,7 +52,10 @@ const Input = () => {
         }),
       });
     }
-  }
+
+    setText("");
+    setImg(null);
+  };
 
   return (
     <div className='input'>
